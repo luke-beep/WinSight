@@ -168,8 +168,3 @@ public class OperatingSystem : IOperatingSystem
         return "Unknown OS";
     }
 }
-public enum PROCESSINFOCLASS
-{
-    ProcessBasicInformation = 0
-    // There are many other values we could define here, but we only need this one for our purpose.
-}
