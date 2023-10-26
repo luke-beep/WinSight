@@ -1,41 +1,31 @@
-﻿using System.ComponentModel;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Globalization;
 using System.Management;
 using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.Win32;
 using NetFwTypeLib;
+using WinSight.Helpers;
+using WinSight.Services.Interfaces;
+
 #pragma warning disable CA1416
 
-namespace WinSight;
+namespace WinSight.Services;
+
 
 public class OperatingSystem : IOperatingSystem
 {
     private readonly Utilities utilities = new();
-    public string Network()
-    {
-        return "";
-    }
 
-    public string Kernel()
-    {
-        return Environment.OSVersion.Version.ToString();
-    }
-
-    public string OSPlatform()
-    {
-        return RuntimeInformation.OSArchitecture.ToString();
-    }
-
-    public string Host()
-    {
-        return Environment.MachineName;
-    }
-
-    public string UserName()
-    {
-        return Environment.UserName;
-    }
+    public string Kernel() => Environment.OSVersion.Version.ToString();
+    public string OSPlatform() => RuntimeInformation.OSArchitecture.ToString();
+    public string Host() => Environment.MachineName;
+    public string UserName() => Environment.UserName;
+    public string ProcessCount() => Process.GetProcesses().Length.ToString();
+    public string Locale() => CultureInfo.CurrentCulture.DisplayName;
+    public string Timezone() => TimeZoneInfo.Local.DisplayName;
+    public string DesktopEnvironment() => "Fluent";
+    public string WindowManager() => "Desktop Window Manager";
 
     public string Uptime()
     {
@@ -43,7 +33,12 @@ public class OperatingSystem : IOperatingSystem
 
         var parts = new List<string>();
 
-        if (uptime.Days > 0) parts.Add(FormatUnit(uptime.Days, "day", "days"));
+        switch (uptime.Days)
+        {
+            case > 0:
+                parts.Add(FormatUnit(uptime.Days, "day", "days"));
+                break;
+        }
         if (uptime.Days > 0 || uptime.Hours > 0) parts.Add(FormatUnit(uptime.Hours, "hour", "hours"));
 
         parts.Add(FormatUnit(uptime.Minutes, "min", "minutes"));
@@ -87,17 +82,20 @@ public class OperatingSystem : IOperatingSystem
         return $"{wingetPackages} (winget)";
     }
 
-    public string ProcessCount()
+    public string Network()
     {
-        return Process.GetProcesses().Length.ToString();
+        return "";
     }
-
 
     public Dictionary<string, string> GetFirewallStatus()
     {
         Dictionary<string, string> firewallStatus = new();
         var type = Type.GetTypeFromProgID("HNetCfg.FwMgr", false);
-        if (type == null) return firewallStatus;
+        switch (type)
+        {
+            case null:
+                return firewallStatus;
+        }
         var firewallManager = (INetFwMgr)Activator.CreateInstance(type)!;
         firewallStatus.Add("Domain Firewall Profile",
             firewallManager.LocalPolicy.GetProfileByType(NET_FW_PROFILE_TYPE_.NET_FW_PROFILE_DOMAIN).FirewallEnabled
@@ -119,26 +117,6 @@ public class OperatingSystem : IOperatingSystem
     {
         var serviceStatus = utilities.GetDefenderItemValue("AMServiceEnabled") == "True" ? "Enabled" : "Disabled";
         return $"{serviceStatus}";
-    }
-
-    public string Locale()
-    {
-        return CultureInfo.CurrentCulture.DisplayName;
-    }
-
-    public string Timezone()
-    {
-        return TimeZoneInfo.Local.DisplayName;
-    }
-
-    public string DesktopEnvironment()
-    {
-        return "Fluent";
-    }
-
-    public string WindowManager()
-    {
-        return "Desktop Window Manager";
     }
 
     public string Terminal()
@@ -189,4 +167,9 @@ public class OperatingSystem : IOperatingSystem
 
         return "Unknown OS";
     }
+}
+public enum PROCESSINFOCLASS
+{
+    ProcessBasicInformation = 0
+    // There are many other values we could define here, but we only need this one for our purpose.
 }

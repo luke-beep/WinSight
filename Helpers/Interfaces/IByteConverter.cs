@@ -1,4 +1,4 @@
-﻿namespace WinSight;
+﻿namespace WinSight.Helpers.Interfaces;
 
 public interface IByteConverter
 {

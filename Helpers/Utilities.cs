@@ -1,7 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
+using WinSight.Services.Interfaces;
 
-namespace WinSight;
+namespace WinSight.Helpers;
 
 public class Utilities : IUtilities
 {
@@ -41,7 +42,7 @@ public class Utilities : IUtilities
         };
 
         using var process = Process.Start(startInfo);
-        return process.StandardOutput.ReadToEnd();
+        return process != null ? process.StandardOutput.ReadToEnd() : "";
     }
 
     public string GetDefenderItemValue(string itemName)
@@ -55,4 +56,5 @@ public class Utilities : IUtilities
 
         return "Unknown";
     }
+
 }

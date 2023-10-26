@@ -1,4 +1,6 @@
-﻿namespace WinSight;
+﻿using WinSight.Helpers.Interfaces;
+
+namespace WinSight.Helpers;
 
 public class ByteConverter : IByteConverter
 {

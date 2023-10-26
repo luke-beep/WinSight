@@ -1,9 +1,11 @@
-﻿using Microsoft.Win32;
-using System.Management;
-using System.Runtime.InteropServices;
+﻿using System.Management;
+using Microsoft.Win32;
+using WinSight.Helpers;
+using WinSight.Services.Interfaces;
+
 #pragma warning disable CA1416
 
-namespace WinSight;
+namespace WinSight.Services;
 
 public class Hardware : IHardware
 {
@@ -14,7 +16,11 @@ public class Hardware : IHardware
         var diskInfos = new List<string>();
         foreach (var drive in DriveInfo.GetDrives())
         {
-            if (!drive.IsReady) continue;
+            switch (drive.IsReady)
+            {
+                case false:
+                    continue;
+            }
             var diskType = drive.DriveType;
             var diskName = drive.Name;
             var freeSpace = byteConverter.ToGibibytes(drive.TotalFreeSpace);
@@ -57,14 +63,17 @@ public class Hardware : IHardware
             var obj = (ManagementObject)o;
             var gpuName = obj["Name"]?.ToString();
             var dacType = obj["AdapterDACType"]?.ToString();
-            if (dacType == "Internal")
+            switch (dacType)
             {
-                var vram = Convert.ToDouble(obj["AdapterRAM"]);
-                gpuInfo.Add($"{gpuName} ({vram / (1L << 30):0.##} GB)");
-            }
-            else
-            {
-                gpuInfo.Add($"{gpuName} ({GetGpuMemoryFromRegistry()} GB)");
+                case "Internal":
+                {
+                    var vram = Convert.ToDouble(obj["AdapterRAM"]);
+                    gpuInfo.Add($"{gpuName} ({vram / (1L << 30):0.##} GB)");
+                    break;
+                }
+                default:
+                    gpuInfo.Add($"{gpuName} ({GetGpuMemoryFromRegistry()} GB)");
+                    break;
             }
         }
 
@@ -76,7 +85,11 @@ public class Hardware : IHardware
         var baseRegistryPath = @"SYSTEM\ControlSet001\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}";
         using var baseKey = Registry.LocalMachine.OpenSubKey(baseRegistryPath);
 
-        if (baseKey == null) return 0;
+        switch (baseKey)
+        {
+            case null:
+                return 0;
+        }
         foreach (var subKeyName in baseKey.GetSubKeyNames())
         {
             using var subKey = baseKey.OpenSubKey(subKeyName);

@@ -1,4 +1,4 @@
-﻿namespace WinSight;
+﻿namespace WinSight.Services.Interfaces;
 
 public interface IHardware
 {
