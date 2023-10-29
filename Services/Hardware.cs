@@ -1,5 +1,6 @@
 ﻿using System.Management;
 using Microsoft.Win32;
+using WinSight.Constants;
 using WinSight.Helpers;
 using WinSight.Services.Interfaces;
 
@@ -11,7 +12,7 @@ public class Hardware : IHardware
 {
     private readonly ByteConverter byteConverter = new();
 
-    public List<string> GetDiskInfo()
+    public Dictionary<string, string> DiskInfo()
     {
         var diskInfos = new List<string>();
         foreach (var drive in DriveInfo.GetDrives())
@@ -30,13 +31,13 @@ public class Hardware : IHardware
             var percentUsed = (int)(100 * usedSpace / totalSpace);
             var format = drive.DriveFormat;
 
-            diskInfos.Add($"Disk ({diskName} - {diskType}): {usedSpace:0.##} GiB / {totalSpaceTb:0.##} TiB ({percentUsed}%) - {format}");
+            diskInfos.Add($"({diskName} - {diskType}): {usedSpace:0.##} GiB / {totalSpaceTb:0.##} TiB ({percentUsed}%) - {format}");
         }
 
-        return diskInfos;
+        return new Dictionary<string, string> { { PropertyConstants.DISK, string.Join(", ", diskInfos) } };
     }
 
-    public List<string> Memory()
+    public Dictionary<string, string> MemoryInfo()
     {
         List<string> memoryInfo = new();
         ManagementObjectSearcher searcher = new("SELECT * FROM Win32_OperatingSystem");
@@ -50,10 +51,10 @@ public class Hardware : IHardware
 
             memoryInfo.Add($"{usedMemory:0.##} GiB / {totalVisibleMemory:0.##} GiB ({usedMemoryPercent}%)");
         }
-        return memoryInfo;
+        return new Dictionary<string, string> { { PropertyConstants.MEMORY, string.Join(", ", memoryInfo) } };
     }
 
-    public List<string> GetGpuInfo()
+    public Dictionary<string, string> GpuInfo()
     {
         List<string> gpuInfo = new();
         ManagementObjectSearcher searcher = new("SELECT * FROM Win32_VideoController");
@@ -77,7 +78,7 @@ public class Hardware : IHardware
             }
         }
 
-        return gpuInfo;
+        return new Dictionary<string, string> { { PropertyConstants.GPU, string.Join(", ", gpuInfo) } };
     }
 
     private static double GetGpuMemoryFromRegistry()
@@ -102,7 +103,7 @@ public class Hardware : IHardware
         return 0;
     }
 
-    public List<string> Cpu()
+    public Dictionary<string, string> CpuInfo()
     {
         List<string> cpuInfo = new();
         ManagementObjectSearcher searcher = new("SELECT * FROM Win32_Processor");
@@ -114,6 +115,6 @@ public class Hardware : IHardware
             var cpuThreads = obj["NumberOfLogicalProcessors"]?.ToString();
             cpuInfo.Add($"{cpuName} ({cpuCores} cores, {cpuThreads} threads)");
         }
-        return cpuInfo;
+        return new Dictionary<string, string> { { PropertyConstants.CPU, string.Join(", ", cpuInfo) } };
     }
 }

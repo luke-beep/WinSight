@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
-using WinSight.Services.Interfaces;
+using WinSight.Helpers.Interfaces;
 
 namespace WinSight.Helpers;
 
@@ -57,4 +57,12 @@ public class Utilities : IUtilities
         return "Unknown";
     }
 
+    public void AddItemToDict(string property, object value, Dictionary<string, List<object>> dict)
+    {
+        if (!dict.ContainsKey(property))
+        {
+            dict[property] = new List<object>();
+        }
+        dict[property].Add(value);
+    }
 }

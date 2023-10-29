@@ -2,8 +2,8 @@
 
 public interface IHardware
 {
-    List<string> GetDiskInfo();
-    List<string> Memory();
-    List<string> GetGpuInfo();
-    List<string> Cpu();
+    Dictionary<string, string> DiskInfo();
+    Dictionary<string, string> MemoryInfo();
+    Dictionary<string, string> GpuInfo();
+    Dictionary<string, string> CpuInfo();
 }
